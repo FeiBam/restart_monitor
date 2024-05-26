@@ -1,9 +1,9 @@
 
 
 import socket
-import UDPServicer
-import Server
-import Client
+import Service.UDPServicer as UDPServicer
+import Core.Server as Server
+import Core.Client as Client
 import json
 
 

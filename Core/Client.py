@@ -1,6 +1,6 @@
 import socket
-from Worker import Worker
-from Logger import ClassNameLogger, get_class_name_logger
+from Base.Worker import Worker
+from utils.Logger import ClassNameLogger, get_class_name_logger
 
 
 
