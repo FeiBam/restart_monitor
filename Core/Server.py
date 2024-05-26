@@ -1,7 +1,7 @@
 import socket
 import time
 from Base.Worker import Worker
-from utils.Logger import ClassNameLogger, get_class_name_logger
+from utils.Logger import get_class_name_logger
 
 
 class RestartMonitorServer(Worker):
@@ -41,7 +41,10 @@ class RestartMonitorServer(Worker):
         return True
 
     def stop(self):
-        pass
+        if not self.is_running:
+            self.logger.warning("Server Already Stoped!")
+            return False
+        self.isRunning = False
     
     def loop(self):
         while(True):

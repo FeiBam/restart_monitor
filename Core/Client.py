@@ -5,6 +5,14 @@ from utils.Logger import ClassNameLogger, get_class_name_logger
 
 
 
+
+
+class RemoteClient():
+    def __init__(self) -> None:
+        pass
+
+
+
 class RestartMonitorClient(Worker):
     def __init__(self,config,UDPService) -> None:
         super.__init__()

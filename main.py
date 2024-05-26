@@ -1,9 +1,7 @@
-
-
 import socket
-import Service.UDPServicer as UDPServicer
 import Core.Server as Server
 import Core.Client as Client
+from Service.UDPService import UDPService
 import json
 
 
@@ -20,15 +18,13 @@ def main():
     
     monitorInstance.run()
     
-
-
 def getClientInstance(config = None):
     if not config:
         config = {
             "listennerPort":36618,
             "senderPort":36681
         }
-    instacne = Client.RestartMonitorClient(config, UDPServicer.UDPService)
+    instacne = Client.RestartMonitorClient(config, UDPService.UDPService)
     
 def getServerInstance(config = None):
     if not config:
@@ -37,6 +33,5 @@ def getServerInstance(config = None):
             "senderPort":36681,
             "discoverDleay" : 3600
         }
-    instance = Server.RestartMonitorServer(config, UDPServicer.UDPService)
+    instance = Server.RestartMonitorServer(config, UDPService.UDPService)
     
-
