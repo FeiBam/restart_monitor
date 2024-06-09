@@ -18,5 +18,6 @@ class Worker(ABC):
     def stop(self) -> bool:
         pass
 
+    @abstractmethod    
     def _loop(self):
         pass

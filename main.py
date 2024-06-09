@@ -1,37 +1,57 @@
 import socket
-import Core.Server as Server
-import Core.Client as Client
 from Service.UDPService import UDPService
+from Types.server_config_t import server_config_t
+from Core.Server import RestartMonitorServer
 import json
 
+        
 
 def main():
-    monitorInstance = None
-    with open("settings.json") as configFils:
-        config = json.load(configFils)
-    
-    if config.Type == "Client":
-        monitorInstance = getClientInstance()
 
-    if config.Type == "Server":
-        monitorInstance = getServerInstance()
+    def discoverHandler(size, data, addr):
+        print(size, data, addr)
+
+
+    configFile = open("settings.json")
+    config = json.load(configFile)
+    server_config = server_config_t.from_dict(config['ServerConfig'])
+
+    x = 0
+    monitorInstance = None
+    udpClientInstance  = UDPService.buildClient(socket.AF_INET, 1)
+    udpServerInstance = UDPService.buildServer(socket.AF_INET, "0.0.0.0" , 36618)
+    udpServerInstance.socket.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
+    server = RestartMonitorServer(server_config, udpServerInstance)
+
+    server.start()
+
+
+    while True:
+        try:
+            command = input()
+            command.lower()
+            if command == "show devices":
+                server.logger.info(server.Devices)
+            if command == "exit":
+                server.stop()
+                return
+            if command == "restart":
+                server.restart()
+            if command == "info":
+                print(server.restart_info)
+        except KeyboardInterrupt:
+            if x == 2:
+                server.stop()
+                return
+            x+=1
+            continue
     
-    monitorInstance.run()
-    
-def getClientInstance(config = None):
-    if not config:
-        config = {
-            "listennerPort":36618,
-            "senderPort":36681
-        }
-    instacne = Client.RestartMonitorClient(config, UDPService.UDPService)
-    
-def getServerInstance(config = None):
-    if not config:
-        config = {
-            "listennerPort":36618,
-            "senderPort":36681,
-            "discoverDleay" : 3600
-        }
-    instance = Server.RestartMonitorServer(config, UDPService.UDPService)
+            
+
+
+if __name__ ==  "__main__":
+    main()
+
+
+
     

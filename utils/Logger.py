@@ -19,6 +19,7 @@ class ClassNameLogger(logging.Logger):
         handler = logging.StreamHandler()
         formatter = logging.Formatter('%(color)s [%(levelname)s] %(asctime)s - %(name)s - %(message)s - [%(class_name)s]%(reset)s')
         handler.setFormatter(formatter)
+        handler.setLevel(self.level)  # 设置处理程序的级别
         self.addHandler(handler)
 
     def makeRecord(self, name, level, fn, lno, msg, args, exc_info, func=None, extra=None, sinfo=None):
@@ -29,7 +30,7 @@ class ClassNameLogger(logging.Logger):
         extra['reset'] = COLOR_CODES['RESET']
         return super().makeRecord(name, level, fn, lno, msg, args, exc_info, func, extra, sinfo)
 
-def get_class_name_logger(name, class_name, level=logging.DEBUG):
+def get_class_name_logger(name, class_name, level=logging.INFO):
     logging.setLoggerClass(ClassNameLogger)
     logger = ClassNameLogger(name, class_name, level)
     logging.setLoggerClass(logging.Logger)  # Reset to default to avoid affecting other loggers

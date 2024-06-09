@@ -2,6 +2,8 @@ import socket
 import codecs
 from Base.Worker import Worker
 from utils.Logger import ClassNameLogger,get_class_name_logger
+import traceback
+from time import sleep
 
 
 class UDPService(Worker):
@@ -19,15 +21,9 @@ class UDPService(Worker):
         self.udp_service_type = mode
     
     def send_bytes(self, addr, buffer):
-        if self.udp_service_type == 1:
-            self.logger.warning("This instance is in Listener Mode.")
-            return
         self.socket.sendto(buffer, addr)
 
     def send_strings(self, addr, data):
-        if self.udp_service_type == 1:
-            self.logger.warning("This instance is in Listener Mode.")
-            return
         encoded_data = codecs.utf_8_encode(data)[0]
         self.send_bytes(addr, encoded_data)
     
@@ -35,19 +31,20 @@ class UDPService(Worker):
         if self.udp_service_type == 1:
             self.logger.warning(f"Already listening on Port: {self.port}")
             return False
-        
-        if self.udp_service_type == 2:
-            self.logger.error("This instance is in Client Mode!")
-            return False
-        
         self.udp_service_type = 1
         address = ("0.0.0.0", self.port)
         try:
+            # 检查地址和端口是否有效
+            info = socket.getaddrinfo(address[0], address[1], socket.AF_INET, socket.SOCK_DGRAM)
+            self.logger.info(f"Address info: {info}")
+
             self.socket.bind(address)
             self.logger.info(f"Start Listener At {address}.")
         except socket.error as e:
             self.udp_service_type = 0
             self.logger.error(f"Failed to bind socket: {e}")
+            self.logger.error(traceback.format_exc())
+            print(address)
             return False
         return True
 
@@ -57,15 +54,17 @@ class UDPService(Worker):
     def start(self) -> bool:
         if self.isRunning:
             return False
-        self.logger.info("Running UDPService")
+        self.logger.info("Start UDP Service.")
         self.isRunning = True
         self.thread.start()
+        self.logger.info("UDP Service Start Success !")
         return True
         
     def stop(self) -> bool:
         if not self.isRunning:
             return False
         self.isRunning = False
+        self.logger.info("Close Socket.")
         self.socket.close()
         self.executor.shutdown(wait=True)
         self.thread.join()
@@ -76,7 +75,7 @@ class UDPService(Worker):
         while True:
             try:
                 if not self.isRunning:
-                    self.logger.warning("Reciver Stop Sigl Stop Thread.")
+                    self.logger.warning("Stop Signal Received, Stopping Thread.")
                     return
                 data, address = self.socket.recvfrom(2048)
                 if data:
@@ -84,7 +83,8 @@ class UDPService(Worker):
                     self.executor.submit(self._handle_data, len(data), data, address)
             except BlockingIOError:
                 continue
-            
+            finally:
+                sleep(1)
 
     def _handle_data(self, data_length, data, address):
         for handler in self.handlers:

@@ -1,24 +1,14 @@
 import socket
 from Base.Worker import Worker
 from utils.Logger import ClassNameLogger, get_class_name_logger
-
-
-
-
-
-
-class RemoteClient():
-    def __init__(self) -> None:
-        pass
-
-
+from Types.discover_service_config_t import discover_service_config_t as config_t
 
 class RestartMonitorClient(Worker):
-    def __init__(self,config,UDPService) -> None:
+    def __init__(self,config : config_t, udpServiceInstance) -> None:
         super.__init__()
-        self.UDPService = UDPService
-        self.UDPServer = UDPService(socket.AF_INET, "0.0.0.0")
-        self.UDPClient = UDPService(socket.AF_INET, "0.0.0.0")
+        self.udpServiceInstance = udpServiceInstance
+        self.LinsterPort = config.listenerPort 
+        self.SenderPort =  config.senderPort 
         self.logger = get_class_name_logger("Client",self.__class__.__name__ )
 
     def handlerRequest(self):
