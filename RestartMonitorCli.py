@@ -17,6 +17,7 @@ class RestartMonitorCLI():
     def __init__(self):
         self.logger = get_class_name_logger("RestartMonitor", "CLI")
         self.udp_server_instance = UDPService.buildServer(socket.AF_INET, "127.0.0.1", 36615)
+        self.udp_server_instance.register_handler(self.handler_udp_message)
         self.udp_server_instance.listener()
         self.local_service_type = None
         self.client = None  # Assuming this will be initialized properly
@@ -29,14 +30,17 @@ class RestartMonitorCLI():
         self.udp_server_instance.send_strings(("127.0.0.1", 36616),message.model_dump_json())
         
 
-    def handler_udp_message(self, size, buffer: bytes, addr):
-        data = buffer.decode("utf-8")
-        message = udp_message_t.model_validate(data)
-        if message.MESSAGE_TYPE == message_type_t.MESSAGE.value:
-            if message.PAYLOAD.COMMAND == command_t.SERVICE_TYPE.value:
-                    if message.PAYLOAD.DATA == restart_monitoy_type_t.CLIENT.value:
+    def handler_udp_message(self, size, data: bytes, addr):
+        print(data)
+        data = data.decode("utf-8")
+        print(data)
+        message = udp_message_t.model_validate_json(data)
+        print(message)
+        if message.MESSAGE_TYPE.value == message_type_t.MESSAGE.value:
+            if message.PAYLOAD.COMMAND.value == command_t.SERVICE_TYPE.value:
+                    if message.PAYLOAD.DATA.value == restart_monitoy_type_t.CLIENT.value:
                         self.local_service_type = restart_monitoy_type_t.CLIENT.value
-                    elif message.PAYLOAD.DATA == restart_monitoy_type_t.SERVER.value:
+                    elif message.PAYLOAD.DATA.value == restart_monitoy_type_t.SERVER.value:
                         self.local_service_type = restart_monitoy_type_t.SERVER.value
         
     def run(self):
@@ -65,6 +69,15 @@ class RestartMonitorCLI():
 
                     elif self.local_service_type == restart_monitoy_type_t.CLIENT.value:
                         pass
+
+                    message = udp_message_t(
+                        MESSAGE_TYPE=message_type_t.COMMAND,
+                        PAYLOAD=command_get_server_info_t(
+                            COMMAND=command_t.INFO,
+                        )
+                    )
+
+                    self.udp_server_instance.send_strings(("127.0.0.1", 36616),message.model_dump_json())
 
                 elif command == "type":
                     print(self.local_service_type)

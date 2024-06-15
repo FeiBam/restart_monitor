@@ -7,31 +7,8 @@ from pydantic import BaseModel
 from Base.Device import DeviceModel
 
 class command_t(Enum):
-    SHOW_DEVICE = 0x1
-    EXIT = 0x2
-    INFO = 0x3
-    RESTART = 0x4
-    SERVICE_TYPE = 0x5
-
-
-
-
-class command_get_server_info_t(BaseModel):
-    COMMAND: command_t
-    DATA : dict
-
-class command_service_type_t(BaseModel):
-    COMMAND : command_t
-
-class command_service_type_reply_t(BaseModel):
-    COMMAND: command_t
-    DATA: restart_monitoy_type_t
-
-class command_get_devices_t(BaseModel):
-    COMMAND : command_t
-
-class command_get_devices_reply_t(BaseModel):
-  COMMAND : command_t
-  DATA: List[DeviceModel]
-  class Config:
-        arbitrary_types_allowed = True
+    SHOW_DEVICE : int = 0x1
+    EXIT : int = 0x2
+    INFO : int = 0x3
+    RESTART : int = 0x4
+    SERVICE_TYPE : int = 0x5

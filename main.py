@@ -8,7 +8,7 @@ from utils.Logger import ClassNameLogger, get_class_name_logger
  
 from Types.server_config_t import server_config_t
 from Types.client_config_t import client_config_t
-from Types.udp_message_t import udp_message_t,message_type_t
+from Types.udp_message_t import *
 from Types.command_t import *        
 from Types.restart_monitoy_type_t import restart_monitoy_type_t
 from time import sleep
@@ -32,7 +32,8 @@ def build_client_command_service(client : RestartMonitorClient):
 
     def handler_udp_message(data_length: int, data: bytes, address: tuple):
         data = data.decode("utf-8")
-        message = udp_message_t.model_validate(data)
+        json_data = json.loads(data)
+        message = udp_message_t(**json_data)
         if message.MESSAGE_TYPE == message_type_t.COMMAND.value:
             handler_command(message.PAYLOAD.COMMAND.value)
 
@@ -40,13 +41,13 @@ def build_client_command_service(client : RestartMonitorClient):
         if command == command_t.SERVICE_TYPE.value:
             client.logger.info("Command Request Service Type.")
             data = udp_message_t(
-                MESSAGE_TYPE = message_type_t.MESSAGE.value,
+                MESSAGE_TYPE = message_type_t.MESSAGE,
                 PAYLOAD = command_service_type_reply_t(
-                    COMMAND = command_t.SERVICE_TYPE.value,
-                    DATA = restart_monitoy_type_t.CLIENT.value
-                )
+                    COMMAND = command_t.SERVICE_TYPE,
+                    DATA = restart_monitoy_type_t.CLIENT
+                ).model_dump()
             )
-            udp_command_server_instance.send_strings(data.model_dump_json())
+            udp_command_server_instance.send_strings(("127.0.0.1",36615),data.model_dump_json())
         if command == command_t.EXIT.value:
             client.stop()
     
@@ -58,25 +59,24 @@ def build_server_command_service(server : RestartMonitorServer):
     udp_command_server_instance.listener()
     
     def handler_udp_message(data_length: int, data: bytes, address: tuple):
-        print(data)
         data = data.decode("utf-8")
         json_data = json.loads(data)
         message = udp_message_t(**json_data)
         if message.MESSAGE_TYPE.value == message_type_t.COMMAND.value:
-            print(message.PAYLOAD.COMMAND.value)
             handler_command(message.PAYLOAD.COMMAND.value) 
 
     def handler_command(command):
         if command == command_t.SERVICE_TYPE.value:
             server.logger.info("Command : Request Service Type.")
             data = udp_message_t(
-                MESSAGE_TYPE = message_type_t.MESSAGE.value,
+                MESSAGE_TYPE = message_type_t.MESSAGE,
                 PAYLOAD = command_service_type_reply_t(
-                    COMMAND = command_t.SERVICE_TYPE.value,
-                    DATA = restart_monitoy_type_t.SERVER.value
+                    COMMAND = command_t.SERVICE_TYPE,
+                    DATA  =  restart_monitoy_type_t.CLIENT
                 )
             )
-            udp_command_server_instance.send_strings(data.model_dump_json())
+            print(data.model_dump_json())
+            udp_command_server_instance.send_strings(("127.0.0.1",36615),data.model_dump_json())
 
         if command == command_t.RESTART.value:
             server.logger.info("Command : fouce restart...")
@@ -85,12 +85,13 @@ def build_server_command_service(server : RestartMonitorServer):
         if command == command_t.INFO.value:
             server.logger.info("Command :  GET Server Info.")
             data =  udp_message_t(
-                MESSAGE_TYPE = message_type_t.MESSAGE.value,
-                PAYLOAD = command_get_server_info_t(
+                MESSAGE_TYPE = message_type_t.MESSAGE,
+                PAYLOAD = comand_get_server_info_reply_t(
+                    COMMAND = command_t.INFO,
                     DATA = server.restart_info
-                )
+                ).model_dump()
             )
-            udp_command_server_instance.send_strings(data.model_dump_json())
+            udp_command_server_instance.send_strings(("127.0.0.1",36615),data.model_dump_json())
 
         if command == command_t.EXIT.value:
             server.stop()
@@ -100,9 +101,9 @@ def build_server_command_service(server : RestartMonitorServer):
                 MESSAGE_TYPE = message_type_t.MESSAGE,
                 PAYLOAD = command_get_devices_reply_t(
                     DATA= [device.to_dict() for device in server.Devices]
-                )
+                ).model_dump()
             )
-            udp_command_server_instance.send_strings(data.model_dump_json())
+            udp_command_server_instance.send_strings(("127.0.0.1",36615),data.model_dump_json())
 
     udp_command_server_instance.register_handler(handler_udp_message)
     udp_command_server_instance.start()
@@ -142,8 +143,19 @@ def main():
             return
         sleep(1)
 
+def m():
+    data = udp_message_command_get_service_type_reply_t(
+        MESSAGE_TYPE = message_type_t.MESSAGE,
+        PAYLOAD = udp_message_command_get_service_type_reply_payload_t(
+            COMMAND = command_t.SERVICE_TYPE,
+            DATA = restart_monitoy_type_t.SERVER
+        )
+    )
+    print(data.model_dump_json())
+    
+#todo  change all udp_message_t to corresponding message type
 if __name__ ==  "__main__":
-    main()
+    m()
 
 
     
