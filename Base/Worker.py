@@ -8,7 +8,8 @@ class Worker(ABC):
         self.max_thread = max_thread
         self.isRunning = False
         self.thread = threading.Thread(target=self._loop)
-        self.executor = ThreadPoolExecutor(max_workers=self.max_thread)
+        if self.max_thread:
+            self.executor = ThreadPoolExecutor(max_workers=self.max_thread)
 
     @abstractmethod
     def start(self) -> bool:

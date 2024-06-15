@@ -3,11 +3,11 @@
 from dataclasses import dataclass
 from Types.discover_service_config_t import discover_service_config_t
 from Types.restart_time_setting_t import restart_time_setting_t
-from utils.JsonSerializable import JsonSerializable
+from pydantic import BaseModel
 
 
 @dataclass
-class server_config_t(JsonSerializable):
+class server_config_t(BaseModel):
     DiscoverConfig : discover_service_config_t
     RestartAT : restart_time_setting_t
     RestartDelay: int

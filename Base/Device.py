@@ -1,6 +1,21 @@
 import time
 from Base.Worker import Worker
 import threading
+from pydantic import BaseModel
+import platform
+
+def get_system_info():
+    system = platform.system()
+    version = platform.version()
+    release = platform.release()
+    return system, version, release
+
+class DeviceModel(BaseModel):
+    address: str
+    status: str
+    last_response_time: float = None
+    timeout: int
+
 
 class Device(Worker):
     def __init__(self, udp_service, address, timeout=5):
@@ -10,6 +25,7 @@ class Device(Worker):
         self.status = "OFFLINE"
         self.last_response_time = None
         self.timeout = timeout
+        self.device_info = (get_system_info())
         self.lock = threading.Lock()
 
     def get_status(self):
@@ -47,6 +63,16 @@ class Device(Worker):
             self.get_status()
             time.sleep(self.timeout)
             self.check_timeout()
+
+
+    def to_dict(self):
+        return DeviceModel(
+            address=self.address,
+            status=self.status,
+            last_response_time=self.last_response_time,
+            timeout=self.timeout,
+            info = self.device_info
+        ).model_dump()
 
     def __str__(self):
         return f"Device(address={self.address}, status={self.status})"

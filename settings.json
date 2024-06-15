@@ -16,7 +16,7 @@
          },
          "RestartDelay": 60,
          "DeviceTimeOut": 30,
-         "DeviceUpdateDelay": 5,
+         "DeviceUpdateDelay": 120,
          "SenderPort": 36619,
          "ListenerPort":36618
     }

@@ -1,8 +1,9 @@
+
+
 from dataclasses import dataclass
 from pydantic import BaseModel
 
-
 @dataclass
-class discover_service_config_t(BaseModel):
-    DiscoverDelay : int
+class client_config_t(BaseModel):
     SenderPort : int
+    ListenerPort : int

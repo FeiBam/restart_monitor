@@ -1,10 +1,10 @@
 
 
 from dataclasses import dataclass
-from utils.JsonSerializable import JsonSerializable
+from pydantic import BaseModel
 
 @dataclass
-class restart_time_setting_t(JsonSerializable):
+class restart_time_setting_t(BaseModel):
     month: int
     day : int
     weekly : int

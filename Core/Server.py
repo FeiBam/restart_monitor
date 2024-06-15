@@ -22,7 +22,7 @@ class RestartMonitorServer(Worker):
         self.discoverService.register_handler(discover_service_event_t.DEVICE_REPLY.value, self.onDeviceReply)
         self.logger = get_class_name_logger("RestartMonitorServer", __class__.__name__)
         self.isDelay = False
-        self.Devices = []
+        self.Devices : Device = [] 
         self.config = config
         self.nextRestartTime = calculate_next_restart_time(config.RestartAT)
         self.lastCheckAt = 0
